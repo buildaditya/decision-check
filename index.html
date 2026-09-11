@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Decision Check</title>
+  <meta name="description" content="A minimal personal decision journal." />
+  <style>
+    :root {
+      --bg: #121212;
+      --surface: #1e1e1e;
+      --surface-hover: #2a2a2a;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #3b82f6;
+      --accent-hover: #60a5fa;
+      --danger: #ef4444;
+      --success: #10b981;
+      --border: #374151;
+      --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font);
+      margin: 0;
+      padding: 0;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    * { box-sizing: border-box; }
+    
+    header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    header h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+    }
+    
+    nav { display: flex; gap: 0.5rem; }
+    
+    nav button {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.875rem;
+      padding: 0.5rem;
+      border-radius: 0.375rem;
+      transition: color 0.2s, background 0.2s;
+    }
+    
+    nav button:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    nav button.active {
+      color: var(--text-main);
+      font-weight: 500;
+    }
+    
+    main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+    
+    .view {
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .view.active { display: block; }
+    
+    h2 { font-size: 1.5rem; margin-top: 0; margin-bottom: 1.5rem; font-weight: 600; }
+    h3 { font-size: 1.125rem; margin-top: 0; margin-bottom: 0.5rem; font-weight: 500; }
+    p { margin-top: 0; margin-bottom: 1rem; color: var(--text-muted); }
+    
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      font-size: 0.875rem;
+    }
+    
+    input[type="text"], textarea, select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 0.875rem 1rem;
+      border-radius: 0.5rem;
+      font-family: var(--font);
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    textarea { resize: vertical; min-height: 100px; }
+    
+    .range-container {
+      background: var(--surface);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border);
+    }
+    input[type="range"] {
+      width: 100%;
+      margin: 0.5rem 0;
+      accent-color: var(--accent);
+    }
+    .range-labels {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.5rem;
+    }
+    
+    .val-display {
+      text-align: center;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+    
+    .btn {
+      background: var(--surface);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 0.875rem 1.5rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, border-color 0.2s;
+      width: 100%;
+    }
+    @media(min-width: 640px) { .btn { width: auto; } }
+    .btn:hover { background: var(--surface-hover); }
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+    .btn-danger {
+      color: var(--danger);
+      border-color: var(--danger);
+      background: transparent;
+    }
+    .btn-danger:hover { background: rgba(239, 68, 68, 0.1); }
+    
+    .filters-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 1.25rem;
+      border-radius: 0.75rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .filters-section input[type="text"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 0.875rem 1rem;
+      border-radius: 0.5rem;
+      color: var(--text-main);
+      font-family: var(--font);
+      font-size: 1rem;
+    }
+    .filters-section input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .filter-group label {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      min-width: 80px;
+    }
+    .filter-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.375rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover {
+      color: var(--text-main);
+      border-color: var(--text-muted);
+    }
+    .filter-btn.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .decision-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .decision-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.1s;
+      position: relative;
+      overflow: hidden;
+    }
+    .decision-card:hover { border-color: var(--text-muted); }
+    .decision-card:active { transform: scale(0.99); }
+    .decision-card.due::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--accent);
+    }
+    .decision-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.5rem;
+      gap: 1rem;
+    }
+    .decision-title {
+      font-size: 1.125rem;
+      font-weight: 500;
+      margin: 0;
+      color: var(--text-main);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 9999px;
+      background: var(--bg);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      white-space: nowrap;
+      font-weight: 500;
+    }
+    .badge.due-badge {
+      background: rgba(59, 130, 246, 0.1);
+      color: var(--accent);
+      border-color: rgba(59, 130, 246, 0.2);
+    }
+    .badge.reviewed-badge {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+      border-color: rgba(16, 185, 129, 0.2);
+    }
+    .decision-meta {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--text-muted);
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: 0.75rem;
+    }
+    .empty-state p { margin-bottom: 1.5rem; }
+    
+    .outcome-group {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    @media(min-width: 640px) {
+      .outcome-group { grid-template-columns: 1fr 1fr 1fr; }
+    }
+    .outcome-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.2s;
+      font-weight: 500;
+      text-align: center;
+    }
+    .outcome-btn:hover { background: var(--surface-hover); }
+    .outcome-correct.selected { border-color: var(--success); background: rgba(16, 185, 129, 0.1); color: var(--success); }
+    .outcome-partial.selected { border-color: var(--accent); background: rgba(59, 130, 246, 0.1); color: var(--accent); }
+    .outcome-wrong.selected { border-color: var(--danger); background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      color: var(--text-main);
+    }
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+    
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--text-main);
+      color: var(--bg);
+      padding: 0.75rem 1.5rem;
+      border-radius: 9999px;
+      font-weight: 500;
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      z-index: 50;
+    }
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    
+    .actions-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    
+    hr {
+      border: 0;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+    
+    .review-read-only {
+      background: var(--surface);
+      padding: 1.25rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+    }
+    .review-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+      font-weight: 600;
+    }
+    .review-text {
+      margin-bottom: 1rem;
+      font-size: 1.125rem;
+    }
+    .review-text:last-child { margin-bottom: 0; }
+    
+    .actions-row {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    
+    .management-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+    }
+    
+    .management-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Decision Check</h1>
+    <nav>
+      <button id="nav-home" class="active" onclick="app.navigate('home')">Home</button>
+      <button id="nav-insights" onclick="app.navigate('insights')">Insights</button>
+      <button id="nav-manage" onclick="app.navigate('manage')">Manage</button>
+    </nav>
+  </header>
+
+  <main>
+    <div id="view-home" class="view active">
+      <div class="actions-bar">
+        <h2>Recent Decisions</h2>
+        <button class="btn btn-primary" onclick="app.navigate('new')">+ New Decision</button>
+      </div>
+
+      <div class="filters-section">
+        <input type="text" id="search-input" placeholder="Search decisions..." oninput="app.setSearch(this.value)" />
+        <div class="filter-group">
+          <label>Status:</label>
+          <div class="filter-buttons" id="status-filters">
+            <button class="filter-btn active" onclick="app.setStatusFilter('All')">All</button>
+            <button class="filter-btn" onclick="app.setStatusFilter('Pending')">Pending</button>
+            <button class="filter-btn" onclick="app.setStatusFilter('Reviewed')">Reviewed</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <label>Confidence:</label>
+          <div class="filter-buttons" id="confidence-filters">
+            <button class="filter-btn active" onclick="app.setConfidenceFilter('All')">All</button>
+            <button class="filter-btn" onclick="app.setConfidenceFilter('High')">High (8-10)</button>
+            <button class="filter-btn" onclick="app.setConfidenceFilter('Medium')">Medium (5-7)</button>
+            <button class="filter-btn" onclick="app.setConfidenceFilter('Low')">Low (1-4)</button>
+          </div>
+        </div>
+      </div>
+      
+      <div id="decision-list" class="decision-list"></div>
+    </div>
+
+    <div id="view-new" class="view">
+      <h2>Log a Decision</h2>
+      <form id="form-new" onsubmit="app.saveDecision(event)">
+        <div class="form-group">
+          <label for="new-decision">Decision</label>
+          <input type="text" id="new-decision" required placeholder="What are you deciding?" autocomplete="off" />
+        </div>
+        <div class="form-group">
+          <label for="new-expectation">What I expect to happen</label>
+          <textarea id="new-expectation" required placeholder="Be specific about the expected outcome..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="new-confidence">Confidence</label>
+          <div class="range-container">
+            <div class="val-display" id="conf-val">5</div>
+            <input type="range" id="new-confidence" min="1" max="10" value="5" oninput="document.getElementById('conf-val').innerText = this.value" />
+            <div class="range-labels">
+              <span>1 (Guessing)</span>
+              <span>10 (Certain)</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="new-review-days">Review in</label>
+          <select id="new-review-days" required>
+            <option value="7">7 days</option>
+            <option value="30" selected>30 days</option>
+            <option value="90">90 days</option>
+          </select>
+        </div>
+        <div class="actions-row">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">Save Decision</button>
+          <button type="button" class="btn" onclick="app.navigate('home')">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="view-review" class="view">
+      <h2>Review Decision</h2>
+      <div id="review-content"></div>
+      
+      <form id="form-review" onsubmit="app.submitReview(event)">
+        <div class="form-group" style="margin-top: 1.5rem;">
+          <label for="review-actual">What actually happened?</label>
+          <textarea id="review-actual" required placeholder="Compare reality to your expectation..."></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label>Outcome</label>
+          <input type="hidden" id="review-outcome-val" required />
+          <div class="outcome-group">
+            <button type="button" class="outcome-btn outcome-correct" onclick="app.selectOutcome('Correct')">Correct</button>
+            <button type="button" class="outcome-btn outcome-partial" onclick="app.selectOutcome('Partially correct')">Partially correct</button>
+            <button type="button" class="outcome-btn outcome-wrong" onclick="app.selectOutcome('Wrong')">Wrong</button>
+          </div>
+        </div>
+        
+        <div class="actions-row">
+          <button type="submit" class="btn btn-primary" style="flex: 1;" id="btn-submit-review">Save Review</button>
+          <button type="button" class="btn" onclick="app.navigate('home')">Cancel</button>
+        </div>
+        
+        <hr>
+        <button type="button" class="btn btn-danger" onclick="app.deleteCurrentDecision()">Delete this decision</button>
+      </form>
+    </div>
+
+    <div id="view-insights" class="view">
+      <h2>Insights</h2>
+      <div id="insights-content"></div>
+    </div>
+    
+    <div id="view-manage" class="view">
+      <h2>Data Management</h2>
+      <div class="management-section">
+        <p>All your data is stored locally in this browser. You can export it as a backup or reset everything.</p>
+        <div class="management-list">
+          <button type="button" class="btn" onclick="app.exportData()">Export all data (JSON)</button>
+          <button type="button" class="btn btn-danger" onclick="app.resetData()">Clear all data</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <div id="toast">Saved!</div>
+
+  <script>
+    const app = {
+      data: [],
+      currentDecisionId: null,
+      searchQuery: '',
+      statusFilter: 'All',
+      confidenceFilter: 'All',
+      
+      init() {
+        const stored = localStorage.getItem('decision_check_data');
+        if (stored) {
+          try {
+            this.data = JSON.parse(stored);
+          } catch (e) {
+            console.error("Failed to parse local storage", e);
+            this.data = [];
+          }
+        }
+        
+        const formReview = document.getElementById('form-review');
+        formReview.addEventListener('submit', (e) => {
+          const outcome = document.getElementById('review-outcome-val').value;
+          if (!outcome) {
+            e.preventDefault();
+            this.showToast('Please select an outcome.');
+          }
+        });
+        
+        this.renderHome();
+      },
+      
+      save() {
+        localStorage.setItem('decision_check_data', JSON.stringify(this.data));
+      },
+      
+      navigate(viewId) {
+        document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+        const navBtn = document.getElementById('nav-' + viewId);
+        if (navBtn) navBtn.classList.add('active');
+        
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        const target = document.getElementById('view-' + viewId);
+        if (target) {
+          target.classList.add('active');
+        }
+        
+        window.scrollTo(0, 0);
+        
+        if (viewId === 'home') {
+          this.renderHome();
+        } else if (viewId === 'new') {
+          document.getElementById('form-new').reset();
+          document.getElementById('conf-val').innerText = '5';
+          document.getElementById('new-decision').focus();
+        } else if (viewId === 'insights') {
+          this.renderInsights();
+        }
+      },
+      
+      showToast(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+      },
+
+      setSearch(query) {
+        this.searchQuery = query.toLowerCase();
+        this.renderHome();
+      },
+      
+      setStatusFilter(status) {
+        this.statusFilter = status;
+        document.querySelectorAll('#status-filters .filter-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.innerText === status);
+        });
+        this.renderHome();
+      },
+      
+      setConfidenceFilter(conf) {
+        this.confidenceFilter = conf;
+        document.querySelectorAll('#confidence-filters .filter-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.innerText.startsWith(conf));
+        });
+        this.renderHome();
+      },
+      
+      clearFilters() {
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) searchInput.value = '';
+        this.searchQuery = '';
+        this.setStatusFilter('All');
+        this.setConfidenceFilter('All');
+      },
+      
+      saveDecision(e) {
+        e.preventDefault();
+        
+        const decisionText = document.getElementById('new-decision').value.trim();
+        const expectationText = document.getElementById('new-expectation').value.trim();
+        const confidence = parseInt(document.getElementById('new-confidence').value, 10);
+        const reviewDays = parseInt(document.getElementById('new-review-days').value, 10);
+        
+        if (!decisionText || !expectationText) return;
+        
+        const now = Date.now();
+        const reviewDate = now + (reviewDays * 24 * 60 * 60 * 1000);
+        
+        const newDec = {
+          id: 'dec_' + now + '_' + Math.floor(Math.random()*1000),
+          decision: decisionText,
+          expectation: expectationText,
+          confidence: confidence,
+          reviewDays: reviewDays,
+          createdAt: now,
+          reviewDate: reviewDate,
+          status: 'Pending',
+          actualResult: null,
+          outcome: null,
+          reviewedAt: null
+        };
+        
+        this.data.unshift(newDec);
+        this.save();
+        
+        this.showToast('Decision saved');
+        this.navigate('home');
+      },
+      
+      renderHome() {
+        const list = document.getElementById('decision-list');
+        list.innerHTML = '';
+        
+        let filteredData = this.data;
+        
+        if (this.searchQuery) {
+          filteredData = filteredData.filter(d => 
+            (d.decision && d.decision.toLowerCase().includes(this.searchQuery)) ||
+            (d.actualResult && d.actualResult.toLowerCase().includes(this.searchQuery))
+          );
+        }
+        
+        if (this.statusFilter !== 'All') {
+          filteredData = filteredData.filter(d => d.status === this.statusFilter);
+        }
+        
+        if (this.confidenceFilter !== 'All') {
+          filteredData = filteredData.filter(d => {
+            if (this.confidenceFilter === 'High') return d.confidence >= 8;
+            if (this.confidenceFilter === 'Medium') return d.confidence >= 5 && d.confidence <= 7;
+            if (this.confidenceFilter === 'Low') return d.confidence <= 4;
+            return true;
+          });
+        }
+        
+        if (filteredData.length === 0) {
+          if (this.data.length === 0) {
+            list.innerHTML = `
+              <div class="empty-state">
+                <p>No decisions logged yet.</p>
+                <button class="btn btn-primary" onclick="app.navigate('new')">Log your first decision</button>
+              </div>
+            `;
+          } else {
+            list.innerHTML = `
+              <div class="empty-state">
+                <p>No decisions match your filters.</p>
+                <button class="btn" onclick="app.clearFilters()">Clear Filters</button>
+              </div>
+            `;
+          }
+          return;
+        }
+        
+        const now = Date.now();
+        
+        filteredData.forEach(d => {
+          const isDue = d.status === 'Pending' && now >= d.reviewDate;
+          
+          const card = document.createElement('div');
+          card.className = 'decision-card ' + (isDue ? 'due' : '');
+          card.onclick = () => this.openReview(d.id);
+          
+          let badgeHtml = '';
+          if (d.status === 'Reviewed') {
+            badgeHtml = `<span class="badge reviewed-badge">Reviewed: ${d.outcome}</span>`;
+          } else if (isDue) {
+            badgeHtml = `<span class="badge due-badge">Review Due</span>`;
+          } else {
+            badgeHtml = `<span class="badge">Pending</span>`;
+          }
+          
+          const createdDateStr = new Date(d.createdAt).toLocaleDateString();
+          const reviewDateStr = new Date(d.reviewDate).toLocaleDateString();
+          
+          card.innerHTML = `
+            <div class="decision-header">
+              <h3 class="decision-title">${this.escapeHTML(d.decision)}</h3>
+              ${badgeHtml}
+            </div>
+            <div class="decision-meta">
+              <span class="meta-item">🗓 ${createdDateStr}</span>
+              <span class="meta-item">🎯 Conf: ${d.confidence}/10</span>
+              ${d.status === 'Pending' ? `<span class="meta-item">⏳ Due: ${reviewDateStr}</span>` : ''}
+            </div>
+          `;
+          list.appendChild(card);
+        });
+      },
+      
+      openReview(id) {
+        this.currentDecisionId = id;
+        const d = this.data.find(x => x.id === id);
+        if (!d) return;
+        
+        const content = document.getElementById('review-content');
+        content.innerHTML = `
+          <div class="review-read-only">
+            <div class="review-label">Decision made on ${new Date(d.createdAt).toLocaleDateString()}</div>
+            <div class="review-text"><strong>${this.escapeHTML(d.decision)}</strong></div>
+            
+            <div class="review-label" style="margin-top: 1rem;">Expected Outcome</div>
+            <div class="review-text" style="color: var(--text-muted);">${this.escapeHTML(d.expectation)}</div>
+            
+            <div class="review-label" style="margin-top: 1rem;">Confidence: ${d.confidence}/10</div>
+          </div>
+        `;
+        
+        document.getElementById('form-review').reset();
+        document.getElementById('review-outcome-val').value = '';
+        document.querySelectorAll('.outcome-btn').forEach(b => b.classList.remove('selected'));
+        
+        if (d.status === 'Reviewed') {
+          document.getElementById('review-actual').value = d.actualResult || '';
+          if (d.outcome) {
+            this.selectOutcome(d.outcome);
+          }
+          document.getElementById('btn-submit-review').innerText = 'Update Review';
+        } else {
+          document.getElementById('btn-submit-review').innerText = 'Save Review';
+        }
+        
+        this.navigate('review');
+      },
+      
+      selectOutcome(outcome) {
+        document.getElementById('review-outcome-val').value = outcome;
+        document.querySelectorAll('.outcome-btn').forEach(b => b.classList.remove('selected'));
+        if (outcome === 'Correct') document.querySelector('.outcome-correct').classList.add('selected');
+        if (outcome === 'Partially correct') document.querySelector('.outcome-partial').classList.add('selected');
+        if (outcome === 'Wrong') document.querySelector('.outcome-wrong').classList.add('selected');
+      },
+      
+      submitReview(e) {
+        e.preventDefault();
+        const outcome = document.getElementById('review-outcome-val').value;
+        if (!outcome) return;
+        
+        const actual = document.getElementById('review-actual').value.trim();
+        
+        const idx = this.data.findIndex(x => x.id === this.currentDecisionId);
+        if (idx !== -1) {
+          this.data[idx].actualResult = actual;
+          this.data[idx].outcome = outcome;
+          this.data[idx].status = 'Reviewed';
+          this.data[idx].reviewedAt = this.data[idx].reviewedAt || Date.now();
+          this.save();
+          this.showToast('Review saved');
+          this.navigate('home');
+        }
+      },
+      
+      deleteCurrentDecision() {
+        if (confirm("Are you sure you want to delete this decision?")) {
+          this.data = this.data.filter(x => x.id !== this.currentDecisionId);
+          this.save();
+          this.showToast('Decision deleted');
+          this.navigate('home');
+        }
+      },
+      
+      renderInsights() {
+        const content = document.getElementById('insights-content');
+        
+        const total = this.data.length;
+        const reviewed = this.data.filter(x => x.status === 'Reviewed');
+        const pending = total - reviewed.length;
+        
+        if (reviewed.length === 0) {
+          content.innerHTML = `
+            <div class="empty-state">
+              <p>No reviewed decisions yet. Review decisions to unlock insights.</p>
+              <div class="stats-grid">
+                <div class="stat-card">
+                  <div class="stat-value">${total}</div>
+                  <div class="stat-label">Total Decisions</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-value">${pending}</div>
+                  <div class="stat-label">Pending Review</div>
+                </div>
+              </div>
+            </div>
+          `;
+          return;
+        }
+        
+        const correct = reviewed.filter(x => x.outcome === 'Correct').length;
+        const partial = reviewed.filter(x => x.outcome === 'Partially correct').length;
+        
+        const score = correct + (partial * 0.5);
+        const accuracy = Math.round((score / reviewed.length) * 100);
+        
+        const highConfReviewed = reviewed.filter(x => x.confidence >= 8);
+        let highConfAccStr = 'N/A';
+        if (highConfReviewed.length > 0) {
+          const hcCorrect = highConfReviewed.filter(x => x.outcome === 'Correct').length;
+          const hcPartial = highConfReviewed.filter(x => x.outcome === 'Partially correct').length;
+          const hcScore = hcCorrect + (hcPartial * 0.5);
+          highConfAccStr = Math.round((hcScore / highConfReviewed.length) * 100) + '%';
+        }
+        
+        const lowConfReviewed = reviewed.filter(x => x.confidence < 8);
+        let lowConfAccStr = 'N/A';
+        if (lowConfReviewed.length > 0) {
+          const lcCorrect = lowConfReviewed.filter(x => x.outcome === 'Correct').length;
+          const lcPartial = lowConfReviewed.filter(x => x.outcome === 'Partially correct').length;
+          const lcScore = lcCorrect + (lcPartial * 0.5);
+          lowConfAccStr = Math.round((lcScore / lowConfReviewed.length) * 100) + '%';
+        }
+        
+        content.innerHTML = `
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value">${accuracy}%</div>
+              <div class="stat-label">Overall Accuracy</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${reviewed.length}</div>
+              <div class="stat-label">Decisions Reviewed</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${highConfAccStr}</div>
+              <div class="stat-label">Accuracy (High Conf: 8-10)</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${lowConfAccStr}</div>
+              <div class="stat-label">Accuracy (Lower Conf: 1-7)</div>
+            </div>
+          </div>
+          
+          <div style="background: var(--surface); padding: 1.5rem; border-radius: 0.75rem; border: 1px solid var(--border);">
+            <h3>Summary</h3>
+            <p style="margin-bottom: 0;">You have ${pending} decision${pending === 1 ? '' : 's'} pending review. Out of ${reviewed.length} reviewed decision${reviewed.length === 1 ? '' : 's'}, you were completely correct ${correct} time${correct === 1 ? '' : 's'}.</p>
+          </div>
+        `;
+      },
+      
+      exportData() {
+        const dataStr = JSON.stringify(this.data, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        const exportFileDefaultName = 'decision-check-backup.json';
+        
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+      },
+      
+      resetData() {
+        if (confirm("WARNING: This will permanently delete all your decisions and insights. Are you absolutely sure?")) {
+          this.data = [];
+          this.save();
+          this.showToast('All data cleared');
+          this.navigate('home');
+        }
+      },
+      
+      escapeHTML(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+    };
+    
+    document.addEventListener('DOMContentLoaded', () => app.init());
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,6 @@
+{
+  "name": "Decision Check",
+  "description": "A minimal personal decision journal that helps users improve their judgment by forcing a clear prediction and a later reality check.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
